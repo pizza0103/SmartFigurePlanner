@@ -1,9 +1,9 @@
-import * as THREE from "three";
 import { createScene } from "./scene.js";
 import { createCamera } from "./camera.js";
 import { createRenderer } from "./renderer.js";
 import CameraControls from "./controls.js";
 import SceneManager from "./sceneManager.js";
+import { Figure } from "./figure";
 
 export default class Engine {
 
@@ -30,15 +30,9 @@ export default class Engine {
         );
         window.addEventListener("resize", () => this.onResize());
 
-        const geometry = new THREE.BoxGeometry(1, 1, 1);
+        const figure = new Figure();
 
-        const material = new THREE.MeshNormalMaterial();
-
-        const cube = new THREE.Mesh(geometry, material);
-
-        cube.position.y = 0.5;
-
-        this.sceneManager.add(cube);
+        this.sceneManager.add(figure.mesh);
 
         this.animate();
     }
