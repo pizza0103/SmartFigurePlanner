@@ -26,6 +26,7 @@ function createEngineWithFigure() {
     engine.raycaster = new THREE.Raycaster();
     engine.pointer = new THREE.Vector2();
     engine.selectedFigure = null;
+    engine.isDragging = false;
 
     return { engine, figure };
 }
@@ -45,4 +46,24 @@ test("clicking empty space clears the selected figure", () => {
     engine.handleSelection({ clientX: 0, clientY: 0 });
 
     assert.equal(engine.selectedFigure, null);
+});
+
+test("pressing a selected figure starts drag mode without moving it", () => {
+    const { engine, figure } = createEngineWithFigure();
+    const initialPosition = figure.position.toArray();
+
+    engine.selectedFigure = figure;
+    engine.handleDragStart({ button: 0, clientX: 50, clientY: 50 });
+
+    assert.equal(engine.isDragging, true);
+    assert.deepEqual(figure.position.toArray(), initialPosition);
+});
+
+test("releasing the left mouse button stops drag mode", () => {
+    const { engine } = createEngineWithFigure();
+
+    engine.isDragging = true;
+    engine.handleDragEnd({ button: 0 });
+
+    assert.equal(engine.isDragging, false);
 });

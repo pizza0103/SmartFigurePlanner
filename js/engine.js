@@ -11,6 +11,7 @@ export default class Engine {
     constructor() {
         this.viewer = document.getElementById("viewer");
         this.selectedFigure = null;
+        this.isDragging = false;
         this.raycaster = new THREE.Raycaster();
         this.pointer = new THREE.Vector2();
     }
@@ -36,6 +37,14 @@ export default class Engine {
             "click",
             event => this.handleSelection(event)
         );
+        this.renderer.domElement.addEventListener(
+            "pointerdown",
+            event => this.handleDragStart(event)
+        );
+        window.addEventListener(
+            "pointerup",
+            event => this.handleDragEnd(event)
+        );
         window.addEventListener("resize", () => this.onResize());
 
         const figures = [
@@ -60,6 +69,12 @@ export default class Engine {
 
     handleSelection(event) {
 
+        this.selectedFigure = this.getFigureAt(event);
+
+    }
+
+    getFigureAt(event) {
+
         const rect = this.renderer.domElement.getBoundingClientRect();
 
         this.pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
@@ -71,8 +86,23 @@ export default class Engine {
             this.sceneManager.objects
         );
 
-        this.selectedFigure =
-            intersections[0]?.object.userData.figure ?? null;
+        return intersections[0]?.object.userData.figure ?? null;
+
+    }
+
+    handleDragStart(event) {
+
+        this.isDragging =
+            event.button === 0 &&
+            this.getFigureAt(event) === this.selectedFigure;
+
+    }
+
+    handleDragEnd(event) {
+
+        if (event.button === 0) {
+            this.isDragging = false;
+        }
 
     }
 
