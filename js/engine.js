@@ -57,6 +57,11 @@ export default class Engine {
 
         this.cabinet = new Cabinet();
         this.sceneManager.add(this.cabinet.getMesh());
+        this.cabinet.getShelves().forEach(shelf => {
+
+            this.sceneManager.add(shelf.getMesh());
+
+        });
 
         const figures = [
             FigureFactory.create("figure_001", "Mario"),

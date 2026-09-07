@@ -1,10 +1,12 @@
 import * as THREE from "three";
+import Shelf from "./Shelf.js";
 
 export default class Cabinet {
 
     constructor() {
 
         this.mesh = this.createMesh();
+        this.shelves = this.createShelves();
 
     }
 
@@ -30,6 +32,18 @@ export default class Cabinet {
     getMesh() {
 
         return this.mesh;
+
+    }
+
+    createShelves() {
+
+        return [1.25, 2.5, 3.75].map(y => new Shelf(y));
+
+    }
+
+    getShelves() {
+
+        return this.shelves;
 
     }
 
