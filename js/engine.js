@@ -3,12 +3,16 @@ import { createCamera } from "./camera.js";
 import { createRenderer } from "./renderer.js";
 import CameraControls from "./controls.js";
 import SceneManager from "./SceneManager.js";
-import { FigureFactory } from "./figure";
+import { FigureFactory } from "./figure/index.js";
+import * as THREE from "three";
 
 export default class Engine {
 
     constructor() {
         this.viewer = document.getElementById("viewer");
+        this.selectedFigure = null;
+        this.raycaster = new THREE.Raycaster();
+        this.pointer = new THREE.Vector2();
     }
 
     start() {
@@ -27,6 +31,10 @@ export default class Engine {
         this.controls = new CameraControls(
         this.camera,
         this.renderer.domElement
+        );
+        this.renderer.domElement.addEventListener(
+            "click",
+            event => this.handleSelection(event)
         );
         window.addEventListener("resize", () => this.onResize());
 
@@ -48,6 +56,24 @@ export default class Engine {
 
         });
         this.animate();
+    }
+
+    handleSelection(event) {
+
+        const rect = this.renderer.domElement.getBoundingClientRect();
+
+        this.pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        this.pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+        this.raycaster.setFromCamera(this.pointer, this.camera);
+
+        const intersections = this.raycaster.intersectObjects(
+            this.sceneManager.objects
+        );
+
+        this.selectedFigure =
+            intersections[0]?.object.userData.figure ?? null;
+
     }
 
     onResize() {
