@@ -4,6 +4,7 @@ import { createRenderer } from "./renderer.js";
 import CameraControls from "./controls.js";
 import SceneManager from "./SceneManager.js";
 import { FigureFactory } from "./figure/index.js";
+import Cabinet from "./cabinet/Cabinet.js";
 import * as THREE from "three";
 
 export default class Engine {
@@ -16,6 +17,7 @@ export default class Engine {
         this.pointer = new THREE.Vector2();
         this.dragPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
         this.dragIntersection = new THREE.Vector3();
+        this.dragOffset = new THREE.Vector3();
     }
 
     start() {
@@ -52,6 +54,9 @@ export default class Engine {
             event => this.handleDragMove(event)
         );
         window.addEventListener("resize", () => this.onResize());
+
+        this.cabinet = new Cabinet();
+        this.sceneManager.add(this.cabinet.getMesh());
 
         const figures = [
             FigureFactory.create("figure_001", "Mario"),
@@ -108,6 +113,15 @@ export default class Engine {
             event.button === 0 &&
             this.getFigureAt(event) === this.selectedFigure;
 
+        if (!this.isDragging || !this.updateDragIntersection(event)) {
+            this.isDragging = false;
+            return;
+        }
+
+        this.dragOffset
+            .copy(this.selectedFigure.position)
+            .sub(this.dragIntersection);
+
     }
 
     handleDragEnd(event) {
@@ -122,12 +136,24 @@ export default class Engine {
 
         if (!this.isDragging) return;
 
+        if (!this.updateDragIntersection(event)) return;
+
+        this.selectedFigure.position
+            .copy(this.dragIntersection)
+            .add(this.dragOffset);
+
+        this.selectedFigure.update();
+
+    }
+
+    updateDragIntersection(event) {
+
         this.setRayFromPointer(event);
 
-        this.raycaster.ray.intersectPlane(
+        return this.raycaster.ray.intersectPlane(
             this.dragPlane,
             this.dragIntersection
-        );
+        ) !== null;
 
     }
 

@@ -29,6 +29,7 @@ function createEngineWithFigure() {
     engine.isDragging = false;
     engine.dragPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
     engine.dragIntersection = new THREE.Vector3();
+    engine.dragOffset = new THREE.Vector3();
 
     return { engine, figure };
 }
@@ -77,10 +78,56 @@ test("dragging stores the mouse intersection with the ground plane", () => {
     engine.camera.position.set(0, 5, 5);
     engine.camera.lookAt(0, 0, 0);
     engine.camera.updateMatrixWorld();
+    engine.selectedFigure = figure;
     engine.isDragging = true;
 
     engine.handleDragMove({ clientX: 50, clientY: 50 });
 
     assert.equal(engine.dragIntersection.y, 0);
     assert.deepEqual(figure.position.toArray(), initialPosition);
+});
+
+test("dragging moves the selected figure while preserving its height", () => {
+    const { engine, figure } = createEngineWithFigure();
+
+    figure.position.y = 0.5;
+    figure.update();
+    figure.getMesh().updateMatrixWorld();
+    const initialPosition = figure.position.toArray();
+    engine.camera.position.set(0, 5, 5);
+    engine.camera.lookAt(0, 0, 0);
+    engine.camera.updateMatrixWorld();
+    engine.selectedFigure = figure;
+
+    engine.handleDragStart({ button: 0, clientX: 50, clientY: 50 });
+    engine.handleDragMove({ clientX: 60, clientY: 50 });
+
+    assert.notDeepEqual(figure.position.toArray(), initialPosition);
+    assert.equal(figure.position.y, 0.5);
+    assert.deepEqual(figure.getMesh().position.toArray(), figure.position.toArray());
+});
+
+test("releasing drag prevents further figure movement", () => {
+    const { engine, figure } = createEngineWithFigure();
+
+    figure.position.y = 0.5;
+    figure.update();
+    figure.getMesh().updateMatrixWorld();
+    const initialPosition = figure.position.toArray();
+    engine.camera.position.set(0, 5, 5);
+    engine.camera.lookAt(0, 0, 0);
+    engine.camera.updateMatrixWorld();
+    engine.selectedFigure = figure;
+
+    engine.handleDragStart({ button: 0, clientX: 50, clientY: 50 });
+    engine.handleDragMove({ clientX: 60, clientY: 50 });
+    engine.handleDragEnd({ button: 0 });
+
+    const positionAfterRelease = figure.position.toArray();
+
+    assert.notDeepEqual(positionAfterRelease, initialPosition);
+
+    engine.handleDragMove({ clientX: 70, clientY: 50 });
+
+    assert.deepEqual(figure.position.toArray(), positionAfterRelease);
 });
