@@ -2,8 +2,8 @@ import { createScene } from "./scene.js";
 import { createCamera } from "./camera.js";
 import { createRenderer } from "./renderer.js";
 import CameraControls from "./controls.js";
-import SceneManager from "./sceneManager.js";
-import { Figure } from "./figure";
+import SceneManager from "./SceneManager.js";
+import { FigureFactory } from "./figure";
 
 export default class Engine {
 
@@ -30,10 +30,23 @@ export default class Engine {
         );
         window.addEventListener("resize", () => this.onResize());
 
-        const figure = new Figure();
+        const figures = [
+            FigureFactory.create("figure_001", "Mario"),
+            FigureFactory.create("figure_002", "Luigi"),
+            FigureFactory.create("figure_003", "Peach")
+        ];
 
-        this.sceneManager.add(figure.mesh);
+        figures[0].position.set(-2, 0.5, 0);
+        figures[1].position.set(0, 0.5, 0);
+        figures[2].position.set(2, 0.5, 0);
 
+        figures.forEach(figure => {
+
+            figure.update();
+
+            this.sceneManager.add(figure.getMesh());
+
+        });
         this.animate();
     }
 
