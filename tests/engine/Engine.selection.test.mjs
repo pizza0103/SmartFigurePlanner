@@ -27,6 +27,8 @@ function createEngineWithFigure() {
     engine.pointer = new THREE.Vector2();
     engine.selectedFigure = null;
     engine.isDragging = false;
+    engine.dragPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+    engine.dragIntersection = new THREE.Vector3();
 
     return { engine, figure };
 }
@@ -66,4 +68,19 @@ test("releasing the left mouse button stops drag mode", () => {
     engine.handleDragEnd({ button: 0 });
 
     assert.equal(engine.isDragging, false);
+});
+
+test("dragging stores the mouse intersection with the ground plane", () => {
+    const { engine, figure } = createEngineWithFigure();
+    const initialPosition = figure.position.toArray();
+
+    engine.camera.position.set(0, 5, 5);
+    engine.camera.lookAt(0, 0, 0);
+    engine.camera.updateMatrixWorld();
+    engine.isDragging = true;
+
+    engine.handleDragMove({ clientX: 50, clientY: 50 });
+
+    assert.equal(engine.dragIntersection.y, 0);
+    assert.deepEqual(figure.position.toArray(), initialPosition);
 });

@@ -14,6 +14,8 @@ export default class Engine {
         this.isDragging = false;
         this.raycaster = new THREE.Raycaster();
         this.pointer = new THREE.Vector2();
+        this.dragPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+        this.dragIntersection = new THREE.Vector3();
     }
 
     start() {
@@ -45,6 +47,10 @@ export default class Engine {
             "pointerup",
             event => this.handleDragEnd(event)
         );
+        window.addEventListener(
+            "pointermove",
+            event => this.handleDragMove(event)
+        );
         window.addEventListener("resize", () => this.onResize());
 
         const figures = [
@@ -75,18 +81,24 @@ export default class Engine {
 
     getFigureAt(event) {
 
-        const rect = this.renderer.domElement.getBoundingClientRect();
-
-        this.pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-        this.pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
-        this.raycaster.setFromCamera(this.pointer, this.camera);
+        this.setRayFromPointer(event);
 
         const intersections = this.raycaster.intersectObjects(
             this.sceneManager.objects
         );
 
         return intersections[0]?.object.userData.figure ?? null;
+
+    }
+
+    setRayFromPointer(event) {
+
+        const rect = this.renderer.domElement.getBoundingClientRect();
+
+        this.pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        this.pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+        this.raycaster.setFromCamera(this.pointer, this.camera);
 
     }
 
@@ -103,6 +115,19 @@ export default class Engine {
         if (event.button === 0) {
             this.isDragging = false;
         }
+
+    }
+
+    handleDragMove(event) {
+
+        if (!this.isDragging) return;
+
+        this.setRayFromPointer(event);
+
+        this.raycaster.ray.intersectPlane(
+            this.dragPlane,
+            this.dragIntersection
+        );
 
     }
 
